@@ -120,10 +120,7 @@ body {
 
 .close-btn:hover {
     background-color: #444;
-    transform: translateY(-2px);;
-    border-radius: 8px;
-    overflow: hidden;
-    padding: 2px;
+    transform: translateY(-2px);
 }
 
 .mode-button {
@@ -269,6 +266,48 @@ body {
 }
 
 .risk-button.active {
+    background-color: #0f99ff;
+    color: #252525;
+    box-shadow: 0 2px 8px rgba(15, 153, 255, 0.4);
+}
+
+/* Speed Section */
+.speed-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.speed-section p {
+    margin: 0;
+    color: #a0a0a0;
+    font-size: 14px;
+}
+
+.speed-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.speed-button {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    transition: all 0.2s;
+    background-color: #252525;
+    color: #0f99ff;
+}
+
+.speed-button:hover {
+    background-color: #2a2a2a;
+}
+
+.speed-button.active {
     background-color: #0f99ff;
     color: #252525;
     box-shadow: 0 2px 8px rgba(15, 153, 255, 0.4);
@@ -562,4 +601,356 @@ body {
     display: flex;
     justify-content: space-between;
     background-color: #252525;
+}
+
+/* Control buttons container */
+.control-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+/* Sound toggle button styling */
+.sound-toggle, .stats-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background-color: #252525;
+    border: none;
+    border-radius: 8px;
+    color: #0f99ff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sound-toggle:hover, .stats-toggle:hover {
+    background-color: #303030;
+}
+
+.sound-toggle.muted {
+    color: #777;
+}
+
+.stats-toggle.active {
+    background-color: #0f99ff;
+    color: white;
+}
+
+.top-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+/* PnL Graph Modal */
+.pnl-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    backdrop-filter: blur(3px);
+}
+
+.pnl-modal {
+    background-color: #1e1e1e;
+    width: 90%;
+    max-width: 800px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+}
+
+.pnl-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #333;
+}
+
+.pnl-header h3 {
+    margin: 0;
+    color: #0f99ff;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.close-pnl-btn {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 24px;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.close-pnl-btn:hover {
+    background-color: #333;
+    color: white;
+}
+
+.pnl-content {
+    padding: 24px;
+    overflow-y: auto;
+}
+
+.pnl-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.summary-item {
+    background-color: #252525;
+    padding: 12px 16px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.summary-label {
+    color: #999;
+    font-size: 14px;
+}
+
+.summary-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: white;
+}
+
+.summary-value.positive {
+    color: #10b981;
+}
+
+.summary-value.negative {
+    color: #ef4444;
+}
+
+.pnl-chart {
+    background-color: #252525;
+    padding: 16px;
+    border-radius: 12px;
+    height: 350px;
+}
+
+/* PnL Tooltip */
+.pnl-tooltip {
+    background-color: rgba(30, 30, 30, 0.9);
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.pnl-tooltip p {
+    margin: 4px 0;
+    color: white;
+    font-size: 14px;
+}
+
+.tooltip-game {
+    color: #999 !important;
+    font-size: 12px !important;
+}
+
+.tooltip-balance {
+    font-weight: 700;
+}
+
+.tooltip-change.positive {
+    color: #10b981 !important;
+    font-weight: 700;
+}
+
+.tooltip-change.negative {
+    color: #ef4444 !important;
+    font-weight: 700;
+}
+
+.chart-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #999;
+    font-size: 16px;
+}
+
+/* Inline Stats Panel */
+.inline-stats-panel {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 280px;
+    background-color: rgba(30, 30, 30, 0.9);
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    z-index: 100;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.inline-stats-header {
+    padding: 10px 15px;
+    background-color: #0f99ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.inline-stats-header h4 {
+    margin: 0;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.inline-stats-content {
+    padding: 15px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.inline-stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 8px 10px;
+    border-radius: 8px;
+}
+
+.inline-stat-label {
+    font-size: 12px;
+    color: #999;
+    font-weight: 500;
+}
+
+.inline-stat-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.inline-stat-value.positive {
+    color: #10b981;
+}
+
+.inline-stat-value.negative {
+    color: #ef4444;
+}
+
+/* Stats Section styles - add this to your App.css */
+
+.stats-section {
+    margin-top: 16px;
+    background-color: #212121;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background-color: #252525;
+    border-bottom: 1px solid #333;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f99ff;
+}
+
+.draw-indicator {
+    font-size: 12px;
+    color: #10b981;
+    background-color: rgba(16, 185, 129, 0.1);
+    padding: 3px 6px;
+    border-radius: 4px;
+}
+
+.stats-content {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.stats-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.stat-item {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    background-color: #252525;
+    border-radius: 6px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #999;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fff;
+}
+
+.stat-value.positive {
+    color: #10b981;
+}
+
+.stat-value.negative {
+    color: #ef4444;
+}
+
+.mini-chart-container {
+    width: 100%;
+    height: 50px;
+    background-color: #252525;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.mini-chart {
+    width: 100%;
+    height: 100%;
 }

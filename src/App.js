@@ -17,6 +17,14 @@ function App() {
     // State for user balance
     const [balance, setBalance] = useState(10000.00);
 
+    // State for animation speed
+    const [animationSpeed, setAnimationSpeed] = useState('Normal');
+
+    // State for PnL tracking
+    const [pnlData, setPnlData] = useState([{ game: 0, balance: 10000, change: 0 }]);
+    const [showStats, setShowStats] = useState(true);
+    const [gameCount, setGameCount] = useState(0);
+
     // State for compact result display
     const [showCompactResult, setShowCompactResult] = useState(false);
     const [resultData, setResultData] = useState({
@@ -33,6 +41,9 @@ function App() {
     // State for audio mute
     const [isMuted, setIsMuted] = useState(false);
 
+    // Reference for mini chart canvas
+    const miniChartRef = useRef(null);
+
     // Audio References
     const audioRefs = useRef({
         draw: [], // Array of Audio objects for concurrent sounds
@@ -45,14 +56,25 @@ function App() {
 
     // Initialize audio elements
     useEffect(() => {
+        // Create copies of the refs we'll use in the cleanup
+        const audioRefsCopy = {
+            draw: [],
+            match: [],
+            win: null
+        };
+        
         // Create multiple instances for draw and match sounds for concurrent playback
         for (let i = 0; i < CONCURRENT_AUDIO_COUNT; i++) {
             audioRefs.current.draw[i] = new Audio('/sounds/draw.mp3');
+            audioRefsCopy.draw[i] = audioRefs.current.draw[i];
+            
             audioRefs.current.match[i] = new Audio('/sounds/match2.mp3');
+            audioRefsCopy.match[i] = audioRefs.current.match[i];
         }
         
         // Single instance for win sound (doesn't need to stack)
         audioRefs.current.win = new Audio('/sounds/win.mp3');
+        audioRefsCopy.win = audioRefs.current.win;
 
         // Pre-load all sounds
         // Draw sounds
@@ -74,24 +96,90 @@ function App() {
         // Cleanup function
         return () => {
             // Clean up draw sounds
-            audioRefs.current.draw.forEach(audio => {
+            audioRefsCopy.draw.forEach(audio => {
                 audio.pause();
                 audio.currentTime = 0;
             });
             
             // Clean up match sounds
-            audioRefs.current.match.forEach(audio => {
+            audioRefsCopy.match.forEach(audio => {
                 audio.pause();
                 audio.currentTime = 0;
             });
             
             // Clean up win sound
-            if (audioRefs.current.win) {
-                audioRefs.current.win.pause();
-                audioRefs.current.win.currentTime = 0;
+            if (audioRefsCopy.win) {
+                audioRefsCopy.win.pause();
+                audioRefsCopy.win.currentTime = 0;
             }
         };
     }, []);
+
+    // Draw mini chart when pnlData changes
+    useEffect(() => {
+        if (!miniChartRef.current || pnlData.length <= 1 || !showStats) return;
+        
+        const canvas = miniChartRef.current;
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        
+        // Set canvas dimensions
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Find min and max values
+        let maxBalance = Math.max(...pnlData.map(item => item.balance));
+        let minBalance = Math.min(...pnlData.map(item => item.balance));
+        
+        // Add padding to values
+        const padding = (maxBalance - minBalance) * 0.1;
+        maxBalance += padding;
+        minBalance = Math.max(0, minBalance - padding);
+        
+        // Draw baseline
+        const baselineY = rect.height - ((pnlData[0].balance - minBalance) / (maxBalance - minBalance)) * rect.height;
+        ctx.beginPath();
+        ctx.strokeStyle = '#555';
+        ctx.lineWidth = 1;
+        ctx.moveTo(0, baselineY);
+        ctx.lineTo(rect.width, baselineY);
+        ctx.stroke();
+        
+        // Draw chart line
+        ctx.beginPath();
+        ctx.strokeStyle = '#0f99ff';
+        ctx.lineWidth = 2;
+        ctx.lineJoin = 'round';
+        
+        // Draw points
+        for (let i = 0; i < pnlData.length; i++) {
+            const x = (i / (pnlData.length - 1)) * rect.width;
+            const y = rect.height - ((pnlData[i].balance - minBalance) / (maxBalance - minBalance)) * rect.height;
+            
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+        ctx.stroke();
+        
+        // Draw points
+        for (let i = 0; i < pnlData.length; i++) {
+            const x = (i / (pnlData.length - 1)) * rect.width;
+            const y = rect.height - ((pnlData[i].balance - minBalance) / (maxBalance - minBalance)) * rect.height;
+            
+            ctx.beginPath();
+            ctx.fillStyle = pnlData[i].change >= 0 ? '#10b981' : '#ef4444';
+            ctx.arc(x, y, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }, [pnlData, showStats]);
 
     // Counter for cycling through audio arrays
     const audioIndexRef = useRef({
@@ -132,6 +220,44 @@ function App() {
         setIsMuted(!isMuted);
     };
 
+    // Toggle stats visibility
+    const toggleStats = () => {
+        setShowStats(!showStats);
+    };
+
+    // Handle bet button click - defined early to use in useEffect
+    const handleBet = React.useCallback(() => {
+        // Hide previous result popup if visible
+        setShowCompactResult(false);
+
+        // Check if user has enough balance
+        if (parseFloat(betAmount) > balance) {
+            alert('Insufficient balance');
+            return;
+        }
+
+        // Play draw sound when bet begins
+        playSound('draw');
+
+        // Track game number
+        const newGameCount = gameCount + 1;
+        setGameCount(newGameCount);
+
+        // Only deduct bet amount if user has selected numbers
+        if (selectedNumbers.length > 0) {
+            // Deduct bet amount from balance
+            setBalance(prevBalance => {
+                return parseFloat((prevBalance - parseFloat(betAmount)).toFixed(2));
+            });
+        }
+
+        // Generate drawn numbers
+        const drawnNumbers = generateDrawNumbers();
+
+        // Start drawing animation
+        handleDrawAnimation(drawnNumbers);
+    }, [gameCount, betAmount, balance, selectedNumbers]);
+
     // Add event listener for spacebar to bet again
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -149,7 +275,7 @@ function App() {
         return () => {
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [isDrawing, showCompactResult, selectedNumbers, betAmount, balance]);
+    }, [isDrawing, showCompactResult, selectedNumbers, betAmount, balance, handleBet]);
 
     // Generate numbers 1-40 for the Keno board
     const generateNumbers = () => {
@@ -176,7 +302,13 @@ function App() {
     const handleAutoPick = () => {
         // Clear current selections
         setSelectedNumbers([]);
-
+        
+        // Clear previously drawn numbers
+        setDrawnResults([]);
+        
+        // Reset draw count
+        setDrawCount(0);
+    
         // Generate 10 random unique numbers between 1-40
         const randomNumbers = [];
         while (randomNumbers.length < 10) {
@@ -191,19 +323,26 @@ function App() {
         }
     };
 
-    // Clear all selected numbers
-    const handleClearTable = () => {
-        setSelectedNumbers([]);
-    };
+    // Updated handleClearTable function
+const handleClearTable = () => {
+    // Clear selected numbers
+    setSelectedNumbers([]);
+    
+    // Clear previously drawn numbers
+    setDrawnResults([]);
+    
+    // Reset draw count
+    setDrawCount(0);
+};
 
     // Handle risk level change
     const handleRiskChange = (level) => {
         setRiskLevel(level);
     };
 
-    // Handle bet mode change
-    const handleBetModeChange = (mode) => {
-        setBetMode(mode);
+    // Handle animation speed change
+    const handleSpeedChange = (speed) => {
+        setAnimationSpeed(speed);
     };
 
     // Handle bet amount change
@@ -254,13 +393,42 @@ function App() {
         return numbers;
     };
 
-    // Handle the drawing animation - Improved for better visualization with faster speed
+    // Get delay based on animation speed
+    const getAnimationDelay = () => {
+        const delays = {
+            'Fast': 50,
+            'Normal': 100,
+            'Slow': 150
+        };
+        return delays[animationSpeed];
+    };
+
+    // Handle the drawing animation with adjustable speed
     const handleDrawAnimation = (drawnNumbers) => {
         setIsDrawing(true);
         setDrawnResults([]);
         setDrawCount(0);
 
-        // Animate drawing one number at a time with faster pace
+        // Get animation delay based on selected speed
+        const delay = getAnimationDelay();
+
+        // Update PnL data with bet deduction if no win occurs
+        const matchedNumbers = selectedNumbers.filter(num => drawnNumbers.includes(num));
+        const winAmount = calculateWinnings(matchedNumbers);
+        
+        // If this will be a loss (no win popup will be shown), update PnL data
+        if (winAmount === 0 && selectedNumbers.length > 0) {
+            setPnlData(prevData => [
+                ...prevData,
+                {
+                    game: gameCount,
+                    balance: balance - parseFloat(betAmount),
+                    change: -parseFloat(betAmount)
+                }
+            ]);
+        }
+
+        // Animate drawing one number at a time
         drawnNumbers.forEach((number, index) => {
             setTimeout(() => {
                 // Increment draw count
@@ -273,7 +441,6 @@ function App() {
                 if (selectedNumbers.includes(number)) {
                     playSound('match');
                 } else {
-                    // Play draw sound for numbers that AREN'T matches
                     playSound('draw');
                 }
 
@@ -291,7 +458,7 @@ function App() {
                         }
                     }, 200);
                 }
-            }, 130 * (index + 1)); // 60ms delay between each number - faster
+            }, delay * (index + 1)); // Use the dynamic delay for adjustable speed
         });
     };
 
@@ -306,7 +473,19 @@ function App() {
 
         // Add winnings to balance
         setBalance(prevBalance => {
-            return parseFloat((prevBalance + winAmount).toFixed(2));
+            const newBalance = parseFloat((prevBalance + winAmount).toFixed(2));
+            
+            // Update PnL data with the new game result
+            setPnlData(prevData => [
+                ...prevData,
+                {
+                    game: gameCount,
+                    balance: newBalance,
+                    change: winAmount - parseFloat(betAmount)
+                }
+            ]);
+            
+            return newBalance;
         });
             
         // Set result data for the popup
@@ -318,32 +497,6 @@ function App() {
 
         // Show result popup
         setShowCompactResult(true);
-    };
-
-    // Handle bet button click
-    const handleBet = () => {
-        // Hide previous result popup if visible
-        setShowCompactResult(false);
-
-        // Check if user has enough balance
-        if (parseFloat(betAmount) > balance) {
-            alert('Insufficient balance');
-            return;
-        }
-
-        // Only deduct bet amount if user has selected numbers
-        if (selectedNumbers.length > 0) {
-            // Deduct bet amount from balance
-            setBalance(prevBalance => {
-                return parseFloat((prevBalance - parseFloat(betAmount)).toFixed(2));
-            });
-        }
-
-        // Generate drawn numbers
-        const drawnNumbers = generateDrawNumbers();
-
-        // Start drawing animation
-        handleDrawAnimation(drawnNumbers);
     };
 
     // Close result popup
@@ -363,6 +516,23 @@ function App() {
         return multipliers[riskLevel];
     };
 
+    // Calculate PnL stats
+    const getPnlSummary = () => {
+        const startingBalance = pnlData[0].balance;
+        const netPnl = balance - startingBalance;
+        const isPositive = netPnl >= 0;
+        
+        return {
+            gamesPlayed: gameCount,
+            startingBalance: startingBalance,
+            currentBalance: balance,
+            netPnl: netPnl,
+            isPositive: isPositive
+        };
+    };
+
+    const pnlSummary = getPnlSummary();
+
     return (
         <div className="keno-app">
             <div className="keno-container">
@@ -372,13 +542,22 @@ function App() {
                             <span>Balance</span>
                             <span className="balance-amount">${balance.toFixed(2)}</span>
                         </div>
-                        <button 
-                            className={`sound-toggle ${isMuted ? 'muted' : ''}`}
-                            onClick={toggleMute}
-                            title={isMuted ? "Unmute sounds" : "Mute sounds"}
-                        >
-                            {isMuted ? '🔇' : '🔊'}
-                        </button>
+                        <div className="control-buttons">
+                            <button 
+                                className={`sound-toggle ${isMuted ? 'muted' : ''}`}
+                                onClick={toggleMute}
+                                title={isMuted ? "Unmute sounds" : "Mute sounds"}
+                            >
+                                {isMuted ? '🔇' : '🔊'}
+                            </button>
+                            <button 
+                                className={`stats-toggle ${showStats ? 'active' : ''}`}
+                                onClick={toggleStats}
+                                title="Show/Hide PnL Stats"
+                            >
+                                📊
+                            </button>
+                        </div>
                     </div>
 
                     <div className="bet-amount-section">
@@ -441,6 +620,29 @@ function App() {
                         </div>
                     </div>
 
+                    <div className="speed-section">
+                        <p>Draw Speed</p>
+                        <div className="speed-buttons">
+                            <button
+                                className={`speed-button ${animationSpeed === 'Fast' ? 'active' : ''}`}
+                                onClick={() => handleSpeedChange('Fast')}
+                            >
+                                Fast
+                            </button>
+                            <button
+                                className={`speed-button ${animationSpeed === 'Normal' ? 'active' : ''}`}
+                                onClick={() => handleSpeedChange('Normal')}
+                            >
+                                Normal
+                            </button>
+                            <button
+                                className={`speed-button ${animationSpeed === 'Slow' ? 'active' : ''}`}
+                                onClick={() => handleSpeedChange('Slow')}
+                            >
+                                Slow
+                            </button>
+                        </div>
+                    </div>
 
                     <div className="table-action-buttons">
                         <button
@@ -466,10 +668,34 @@ function App() {
                     >
                         {isDrawing ? "Drawing..." : "Bet"}
                     </button>
-                    
-                    <div className="spacebar-tip">
-                        Press <kbd>Spacebar</kbd> to bet
-                    </div>
+
+                    {showStats && (
+                        <div className="stats-section">
+                            <div className="stats-header">
+                                <span>Statistics</span>
+                            </div>
+                            <div className="stats-content">
+                                <div className="stats-summary">
+                                    <div className="stat-row">
+                                        <div className="stat-item">
+                                            <span className="stat-label">Games</span>
+                                            <span className="stat-value">{pnlSummary.gamesPlayed}</span>
+                                        </div>
+                                        <div className="stat-item">
+                                            <span className="stat-label">P/L</span>
+                                            <span className={`stat-value ${pnlSummary.isPositive ? 'positive' : 'negative'}`}>
+                                                ${Math.abs(pnlSummary.netPnl).toFixed(2)}
+                                                {pnlSummary.isPositive ? '↑' : '↓'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mini-chart-container">
+                                    <canvas ref={miniChartRef} className="mini-chart" />
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="keno-board">
