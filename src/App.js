@@ -642,7 +642,7 @@ function App() {
                         </div>
                     </div>
 
-                    {/* Draw Speed Slider */}
+                    {/* Draw Speed Slider - reversed so right is faster */}
                     <div className="speed-section">
                         <div className="speed-label">
                             <span>Draw Speed</span>
@@ -654,8 +654,8 @@ function App() {
                                 type="range"
                                 min="70"
                                 max="200"
-                                value={animationSpeed}
-                                onChange={handleSpeedChange}
+                                value={270 - animationSpeed} // Reverse the value - 270-(70 to 200) gives 200 to 70
+                                onChange={(e) => setAnimationSpeed(270 - parseInt(e.target.value))} // Reverse the input
                                 className="speed-slider"
                             />
                             <span className="speed-icon">🐇</span>
