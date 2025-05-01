@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
@@ -29,6 +29,25 @@ function App() {
     const [isDrawing, setIsDrawing] = useState(false);
     const [drawnResults, setDrawnResults] = useState([]);
     const [drawCount, setDrawCount] = useState(0);
+
+    // Add event listener for spacebar to bet again
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (event.code === 'Space' && !isDrawing && !showCompactResult) {
+                handleBet();
+            } else if (event.code === 'Space' && showCompactResult) {
+                handleCompactResultClose();
+                setTimeout(() => {
+                    handleBet();
+                }, 100);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isDrawing, showCompactResult, selectedNumbers, betAmount, balance]);
 
     // Generate numbers 1-40 for the Keno board
     const generateNumbers = () => {
@@ -160,7 +179,7 @@ function App() {
                         );
                     }, 200);
                 }
-            }, 70 * (index + 1)); // 150ms (0.15 sec) delay between each number - much faster
+            }, 70 * (index + 1)); // 70ms delay between each number - faster
         });
     };
 
@@ -173,29 +192,23 @@ function App() {
             setBalance(prevBalance => {
                 return parseFloat((prevBalance + winAmount).toFixed(2));
             });
-            
-            // Set result data for the compact popup
-            setResultData({
-                winAmount,
-                matchedNumbers,
-                drawnNumbers
-            });
-
-            // Show compact result only if there's a win
-            setShowCompactResult(true);
         }
+            
+        // Set result data for the compact popup
+        setResultData({
+            winAmount,
+            matchedNumbers,
+            drawnNumbers
+        });
+
+        // Show compact result regardless of win or loss
+        setShowCompactResult(true);
     };
 
     // Handle bet button click
     const handleBet = () => {
         // Hide previous result popup if visible
         setShowCompactResult(false);
-
-        // Check if user has selected any numbers
-        if (selectedNumbers.length === 0) {
-            alert('Please select at least one number');
-            return;
-        }
 
         // Check if user has enough balance
         if (parseFloat(betAmount) > balance) {
@@ -275,25 +288,25 @@ function App() {
                         <p>Risk</p>
                         <div className="risk-buttons">
                             <button
-                                className={`risk-button classic ${riskLevel === 'Classic' ? 'active' : ''}`}
+                                className={`risk-button ${riskLevel === 'Classic' ? 'active' : ''}`}
                                 onClick={() => handleRiskChange('Classic')}
                             >
                                 Classic
                             </button>
                             <button
-                                className={`risk-button low ${riskLevel === 'Low' ? 'active' : ''}`}
+                                className={`risk-button ${riskLevel === 'Low' ? 'active' : ''}`}
                                 onClick={() => handleRiskChange('Low')}
                             >
                                 Low
                             </button>
                             <button
-                                className={`risk-button medium ${riskLevel === 'Medium' ? 'active' : ''}`}
+                                className={`risk-button ${riskLevel === 'Medium' ? 'active' : ''}`}
                                 onClick={() => handleRiskChange('Medium')}
                             >
                                 Medium
                             </button>
                             <button
-                                className={`risk-button high ${riskLevel === 'High' ? 'active' : ''}`}
+                                className={`risk-button ${riskLevel === 'High' ? 'active' : ''}`}
                                 onClick={() => handleRiskChange('High')}
                             >
                                 High
@@ -326,6 +339,10 @@ function App() {
                     >
                         {isDrawing ? "Drawing..." : "Bet"}
                     </button>
+                    
+                    <div className="spacebar-tip">
+                        Press <kbd>Spacebar</kbd> to bet
+                    </div>
                 </div>
 
                 <div className="keno-board">
@@ -335,7 +352,7 @@ function App() {
                                 key={number}
                                 className={`number-button 
                                     ${selectedNumbers.includes(number) ? 'selected' : ''} 
-                                    ${drawnResults.includes(number) ? 'drawn-result' : ''}
+                                    ${drawnResults.includes(number) && !selectedNumbers.includes(number) ? 'drawn-result' : ''}
                                     ${drawnResults.includes(number) && selectedNumbers.includes(number) ? 'matched' : ''}
                                 `}
                                 onClick={() => handleNumberSelect(number)}
@@ -368,18 +385,59 @@ function App() {
                 </div>
             </div>
 
-            {/* Compact Result Display */}
+            {/* Improved Compact Result Display */}
             {showCompactResult && (
                 <div className="compact-result">
                     <div className="compact-result-content">
-                        <div className="compact-result-info">
-                            <span className="matched-count">{resultData.matchedNumbers.length}</span>
+                        <div className="result-header">
+                            {resultData.winAmount > 0 ? 'You Won!' : 'Game Result'}
                         </div>
+                        <div className="compact-result-info">
+                            <div className="match-info">
+                                <span className="match-label">Matched</span>
+                                <span className="matched-count">{resultData.matchedNumbers.length}</span>
+                                <span className="match-label">of 10</span>
+                            </div>
+                            
+                            {resultData.winAmount > 0 && (
+                                <div className="result-multiplier">
+                                    {getMultiplierValues()[resultData.matchedNumbers.length]}
+                                </div>
+                            )}
+                        </div>
+                        
                         {resultData.winAmount > 0 ? (
-                            <div className="win-amount-display">+${resultData.winAmount.toFixed(2)}</div>
+                            <div className="win-amount-display">
+                                <div className="win-label">WIN</div>
+                                <div className="win-value">+${resultData.winAmount.toFixed(2)}</div>
+                            </div>
                         ) : (
                             <div className="no-win-display">No Win</div>
                         )}
+                        
+                        <div className="compact-result-buttons">
+                            <button
+                                className="bet-again-button"
+                                onClick={() => {
+                                    handleCompactResultClose();
+                                    setTimeout(() => {
+                                        handleBet();
+                                    }, 100);
+                                }}
+                            >
+                                Bet Again
+                            </button>
+                            <button
+                                className="close-result-button"
+                                onClick={handleCompactResultClose}
+                            >
+                                Close
+                            </button>
+                        </div>
+                        
+                        <div className="spacebar-tip">
+                            Press <kbd>Spacebar</kbd> to bet again
+                        </div>
                     </div>
                 </div>
             )}

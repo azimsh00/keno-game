@@ -1,11 +1,11 @@
-/* Import JetBrains Mono font */
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+/* Import Exo 2 font - modern gaming style font */
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700&display=swap');
 
 /* General App Styling */
 body {
     margin: 0;
     padding: 0;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Exo 2', sans-serif;
     background-color: #121212;
     color: #ffffff;
 }
@@ -143,7 +143,7 @@ body {
     color: #ffffff;
     padding: 12px 0;
     font-size: 15px;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Exo 2', sans-serif;
 }
 
 .crypto-input input:focus {
@@ -199,32 +199,18 @@ body {
     font-size: 13px;
     font-weight: 700;
     transition: all 0.2s;
-    background-color: #222222;
-    color: #777777;
+    background-color: #252525;
+    color: #0f99ff;
 }
 
 .risk-button:hover {
     background-color: #2a2a2a;
 }
 
-.risk-button.classic {
-    color: #3b82f6;
-}
-
-.risk-button.low {
-    color: #10b981;
-}
-
-.risk-button.medium {
-    color: #f59e0b;
-}
-
-.risk-button.high {
-    color: #ef4444;
-}
-
 .risk-button.active {
-    background-color: #2a2a2a;
+    background-color: #0f99ff;
+    color: #252525;
+    box-shadow: 0 2px 8px rgba(15, 153, 255, 0.4);
 }
 
 /* Selection Info */
@@ -287,6 +273,23 @@ body {
     transform: translateY(-2px);
 }
 
+/* Spacebar tip */
+.spacebar-tip {
+    text-align: center;
+    color: #888;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+.spacebar-tip kbd {
+    background-color: #252525;
+    border: 1px solid #444;
+    border-radius: 3px;
+    padding: 2px 5px;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    font-size: 11px;
+}
+
 /* Keno Board */
 .keno-board {
     flex: 1;
@@ -332,11 +335,12 @@ body {
     box-shadow: 0 0 12px rgba(15, 153, 255, 0.5);
 }
 
-/* Numbers that have been drawn - darker background */
+/* Numbers that have been drawn but not selected - darker background with RED outline */
 .number-button.drawn-result {
     background-color: #121212;
     box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8);
     color: #777;
+    border: 1px solid rgba(255, 59, 59, 0.5);
 }
 
 /* Matched numbers (user selected + drawn) - keep green for correct picks */
@@ -433,139 +437,4 @@ body {
     margin-left: 4px;
     margin-bottom: 2px;
     color: #10b981;
-}
-
-/* Compact Result Popup - Fixed Position */
-.compact-result {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(5px);
-    width: 280px;
-    border-radius: 12px;
-    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
-    z-index: 1000;
-    overflow: hidden;
-    animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-.compact-result-content {
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-.compact-result-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.matched-count {
-    font-size: 28px;
-    font-weight: 700;
-    color: #10b981;
-}
-
-.result-multiplier {
-    font-size: 18px;
-    font-weight: 700;
-    color: #10b981;
-    padding: 5px 10px;
-    background-color: rgba(16, 185, 129, 0.1);
-    border-radius: 6px;
-}
-
-.win-amount-display {
-    font-size: 28px;
-    font-weight: 700;
-    color: #10b981;
-    text-align: center;
-    text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
-}
-
-.no-win-display {
-    font-size: 20px;
-    font-weight: 700;
-    color: #ef4444;
-    text-align: center;
-}
-
-.compact-result-buttons {
-    display: flex;
-    gap: 8px;
-}
-
-.bet-again-button,
-.close-result-button {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    transition: all 0.2s;
-}
-
-.bet-again-button {
-    background-color: #0f99ff;
-    color: #ffffff;
-    box-shadow: 0 4px 12px rgba(15, 153, 255, 0.3);
-}
-
-.bet-again-button:hover {
-    background-color: #2ba8ff;
-    box-shadow: 0 6px 16px rgba(15, 153, 255, 0.5);
-    transform: translateY(-2px);
-}
-
-.close-result-button {
-    background-color: #333;
-    color: #ffffff;
-}
-
-.close-result-button:hover {
-    background-color: #444;
-    transform: translateY(-2px);
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-    .keno-container {
-        flex-direction: column;
-    }
-
-    .betting-panel {
-        width: 100%;
-        border-right: none;
-        border-bottom: 1px solid #2a2a2a;
-    }
-
-    .compact-result {
-        width: 90%;
-        max-width: 280px;
-    }
-}
-
-/* Disabled Button Styles */
-button:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
 }
