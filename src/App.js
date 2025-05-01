@@ -108,9 +108,9 @@ function App() {
         // Base multipliers by risk level and number of matches
         const multipliers = {
             'Classic': [0, 0, 0, 1.4, 2.25, 4.5, 8.0, 17.0, 50.0, 80.0, 100.0],
-            'Low': [0, 0, 0.5, 1, 1.5, 2, 5, 12, 50, 150, 1200],
-            'Medium': [0, 0, 0, 0, 2, 4, 8, 15, 50, 200, 1500],
-            'High': [0, 0, 0, 0, 0, 2, 10, 40, 100, 500, 2000]
+            'Low': [0, 0, 0.5, 1.6, 2.0, 4.0, 7.0, 28.0, 100.0, 500.0, 1000.0],
+            'Medium': [0, 0, 0, 1.1, 1.3, 1.8, 3.5, 13.0, 50.0, 250.0, 1000.0],
+            'High': [0, 0, 0, 0, 3.5, 8.0, 13.0, 83.0, 500.0, 800.0, 1000.0]
         };
 
         // Get multiplier based on risk level and number of matches
@@ -173,17 +173,17 @@ function App() {
             setBalance(prevBalance => {
                 return parseFloat((prevBalance + winAmount).toFixed(2));
             });
+            
+            // Set result data for the compact popup
+            setResultData({
+                winAmount,
+                matchedNumbers,
+                drawnNumbers
+            });
+
+            // Show compact result only if there's a win
+            setShowCompactResult(true);
         }
-
-        // Set result data for the compact popup
-        setResultData({
-            winAmount,
-            matchedNumbers,
-            drawnNumbers
-        });
-
-        // Show compact result
-        setShowCompactResult(true);
     };
 
     // Handle bet button click
@@ -220,6 +220,18 @@ function App() {
         setShowCompactResult(false);
     };
 
+    // Get multiplier display values based on current risk level
+    const getMultiplierValues = () => {
+        const multipliers = {
+            'Classic': ['0.00x', '0.00x', '0.00x', '1.40x', '2.25x', '4.50x', '8.00x', '17.00x', '50.00x', '80.00x', '100.0x'],
+            'Low': ['0.00x', '0.00x', '0.50x', '1.60x', '2.00x', '4.00x', '7.00x', '28.00x', '100.0x', '500.0x', '1000x'],
+            'Medium': ['0.00x', '0.00x', '0.00x', '1.10x', '1.30x', '1.80x', '3.50x', '13.00x', '50.00x', '250.0x', '1000x'],
+            'High': ['0.00x', '0.00x', '0.00x', '0.00x', '3.50x', '8.00x', '13.00x', '83.00x', '500.0x', '800.0x', '1000x']
+        };
+        
+        return multipliers[riskLevel];
+    };
+
     return (
         <div className="keno-app">
             <div className="keno-container">
@@ -232,7 +244,6 @@ function App() {
                     <div className="bet-amount-section">
                         <div className="bet-amount-label">
                             <span>Bet Amount</span>
-                            <span className="info-icon">ⓘ</span>
                             <span className="amount-display">${betAmount}</span>
                         </div>
 
@@ -269,12 +280,27 @@ function App() {
                             >
                                 Classic
                             </button>
+                            <button
+                                className={`risk-button low ${riskLevel === 'Low' ? 'active' : ''}`}
+                                onClick={() => handleRiskChange('Low')}
+                            >
+                                Low
+                            </button>
+                            <button
+                                className={`risk-button medium ${riskLevel === 'Medium' ? 'active' : ''}`}
+                                onClick={() => handleRiskChange('Medium')}
+                            >
+                                Medium
+                            </button>
+                            <button
+                                className={`risk-button high ${riskLevel === 'High' ? 'active' : ''}`}
+                                onClick={() => handleRiskChange('High')}
+                            >
+                                High
+                            </button>
                         </div>
                     </div>
 
-                    <div className="selection-info">
-                        <span>{selectedNumbers.length}/10 Numbers Selected</span>
-                    </div>
 
                     <div className="table-action-buttons">
                         <button
@@ -323,7 +349,7 @@ function App() {
                     <div className="multipliers-section">
                         <div className="multiplier-rows">
                             <div className="multiplier-row">
-                                {['0.00x', '0.00x', '0.00x', '1.40x', '2.25x', '4.50x', '8.00x', '17.00x', '50.00x', '80.00x', '100.0x'].map((multiplier, index) => (
+                                {getMultiplierValues().map((multiplier, index) => (
                                     <div key={index} className="multiplier-cell">
                                         {multiplier}
                                     </div>
@@ -331,9 +357,9 @@ function App() {
                             </div>
 
                             <div className="multiplier-row">
-                                {['0x', '1x', '2x', '3x', '4x', '5x', '6x', '7x', '8x', '9x', '10x'].map((multiplier, index) => (
+                                {['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].map((multiplier, index) => (
                                     <div key={index} className="multiplier-cell green">
-                                        {multiplier} <span className="green-dot">●</span>
+                                        {multiplier} <span className="green-dot">■</span>
                                     </div>
                                 ))}
                             </div>
@@ -347,10 +373,7 @@ function App() {
                 <div className="compact-result">
                     <div className="compact-result-content">
                         <div className="compact-result-info">
-                            <span className="matched-count">{resultData.matchedNumbers.length} / 10</span>
-                            <span className="result-multiplier">
-                                {calculateWinnings([...Array(resultData.matchedNumbers.length).keys()]) / parseFloat(betAmount) || 0}x
-                            </span>
+                            <span className="matched-count">{resultData.matchedNumbers.length}</span>
                         </div>
                         {resultData.winAmount > 0 ? (
                             <div className="win-amount-display">+${resultData.winAmount.toFixed(2)}</div>

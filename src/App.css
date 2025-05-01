@@ -194,54 +194,37 @@ body {
     flex: 1;
     padding: 10px 0;
     border: none;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     font-size: 13px;
-    font-weight: 500;
+    font-weight: 700;
     transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
+    background-color: #222222;
+    color: #777777;
 }
 
-.risk-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0.1);
-    transform: translateY(100%);
-    transition: transform 0.2s;
-}
-
-.risk-button:hover::before {
-    transform: translateY(0);
+.risk-button:hover {
+    background-color: #2a2a2a;
 }
 
 .risk-button.classic {
-    background-color: #3b82f6;
-    color: white;
+    color: #3b82f6;
 }
 
 .risk-button.low {
-    background-color: #10b981;
-    color: white;
+    color: #10b981;
 }
 
 .risk-button.medium {
-    background-color: #f59e0b;
-    color: white;
+    color: #f59e0b;
 }
 
 .risk-button.high {
-    background-color: #ef4444;
-    color: white;
+    color: #ef4444;
 }
 
 .risk-button.active {
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
-    transform: translateY(-2px);
+    background-color: #2a2a2a;
 }
 
 /* Selection Info */
@@ -448,6 +431,7 @@ body {
 
 .green-dot {
     margin-left: 4px;
+    margin-bottom: 2px;
     color: #10b981;
 }
 
@@ -493,9 +477,9 @@ body {
 }
 
 .matched-count {
-    font-size: 20px;
+    font-size: 28px;
     font-weight: 700;
-    color: #ffffff;
+    color: #10b981;
 }
 
 .result-multiplier {
