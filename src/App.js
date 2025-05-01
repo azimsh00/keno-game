@@ -17,8 +17,8 @@ function App() {
     // State for user balance
     const [balance, setBalance] = useState(10000.00);
 
-    // State for animation speed
-    const [animationSpeed, setAnimationSpeed] = useState('Normal');
+    // State for animation speed (now a numeric value)
+    const [animationSpeed, setAnimationSpeed] = useState(100);
 
     // State for PnL tracking
     const [pnlData, setPnlData] = useState([{ game: 0, balance: 10000, change: 0 }]);
@@ -38,8 +38,8 @@ function App() {
     const [drawnResults, setDrawnResults] = useState([]);
     const [drawCount, setDrawCount] = useState(0);
 
-    // State for audio mute
-    const [isMuted, setIsMuted] = useState(false);
+    // State for volume level (0 to 1)
+    const [volume, setVolume] = useState(0.5);
 
     // Reference for mini chart canvas
     const miniChartRef = useRef(null);
@@ -80,18 +80,18 @@ function App() {
         // Draw sounds
         audioRefs.current.draw.forEach(audio => {
             audio.load();
-            audio.volume = 0.5;
+            audio.volume = volume;
         });
         
         // Match sounds
         audioRefs.current.match.forEach(audio => {
             audio.load();
-            audio.volume = 0.5;
+            audio.volume = volume;
         });
         
         // Win sound
         audioRefs.current.win.load();
-        audioRefs.current.win.volume = 0.5;
+        audioRefs.current.win.volume = volume;
 
         // Cleanup function
         return () => {
@@ -114,6 +114,24 @@ function App() {
             }
         };
     }, []);
+
+    // Update all audio volumes when volume state changes
+    useEffect(() => {
+        // Update draw sounds volume
+        audioRefs.current.draw.forEach(audio => {
+            audio.volume = volume;
+        });
+        
+        // Update match sounds volume
+        audioRefs.current.match.forEach(audio => {
+            audio.volume = volume;
+        });
+        
+        // Update win sound volume
+        if (audioRefs.current.win) {
+            audioRefs.current.win.volume = volume;
+        }
+    }, [volume]);
 
     // Draw mini chart when pnlData changes
     useEffect(() => {
@@ -189,7 +207,7 @@ function App() {
 
     // Function to play sound that supports concurrent playback
     const playSound = (soundName) => {
-        if (isMuted) return;
+        if (volume <= 0.02) return; // Consider muted if volume is very low
         
         if (soundName === 'draw' || soundName === 'match') {
             // Get next available audio instance
@@ -213,11 +231,6 @@ function App() {
                 console.error(`Error playing win sound:`, error);
             });
         }
-    };
-
-    // Toggle mute function
-    const toggleMute = () => {
-        setIsMuted(!isMuted);
     };
 
     // Toggle stats visibility
@@ -324,25 +337,30 @@ function App() {
     };
 
     // Updated handleClearTable function
-const handleClearTable = () => {
-    // Clear selected numbers
-    setSelectedNumbers([]);
-    
-    // Clear previously drawn numbers
-    setDrawnResults([]);
-    
-    // Reset draw count
-    setDrawCount(0);
-};
+    const handleClearTable = () => {
+        // Clear selected numbers
+        setSelectedNumbers([]);
+        
+        // Clear previously drawn numbers
+        setDrawnResults([]);
+        
+        // Reset draw count
+        setDrawCount(0);
+    };
 
     // Handle risk level change
     const handleRiskChange = (level) => {
         setRiskLevel(level);
     };
 
+    // Handle volume change
+    const handleVolumeChange = (e) => {
+        setVolume(parseFloat(e.target.value));
+    };
+
     // Handle animation speed change
-    const handleSpeedChange = (speed) => {
-        setAnimationSpeed(speed);
+    const handleSpeedChange = (e) => {
+        setAnimationSpeed(parseInt(e.target.value));
     };
 
     // Handle bet amount change
@@ -370,7 +388,7 @@ const handleClearTable = () => {
             'Classic': [0, 0, 0, 1.4, 2.25, 4.5, 8.0, 17.0, 50.0, 80.0, 100.0],
             'Low': [0, 0, 1.10, 1.20, 1.30, 1.80, 3.50, 13.00, 50.00, 250.0, 1000.0],
             'Medium': [0, 0, 0, 1.1, 1.3, 1.8, 3.5, 13.0, 50.0, 250.0, 1000.0],
-            'High': [0, 0, 0, 0, 3.5, 8.0, 13.0, 83.0, 500.0, 800.0, 1000.0]
+            'High': [0, 0, 0, 0, 3.5, 8.0, 13.0, 63.0, 500.0, 800.0, 1000.0]
         };
 
         // Get multiplier based on risk level and number of matches
@@ -393,24 +411,14 @@ const handleClearTable = () => {
         return numbers;
     };
 
-    // Get delay based on animation speed
-    const getAnimationDelay = () => {
-        const delays = {
-            'Fast': 50,
-            'Normal': 100,
-            'Slow': 150
-        };
-        return delays[animationSpeed];
-    };
-
     // Handle the drawing animation with adjustable speed
     const handleDrawAnimation = (drawnNumbers) => {
         setIsDrawing(true);
         setDrawnResults([]);
         setDrawCount(0);
 
-        // Get animation delay based on selected speed
-        const delay = getAnimationDelay();
+        // Use the numeric animation speed value
+        const delay = animationSpeed;
 
         // Update PnL data with bet deduction if no win occurs
         const matchedNumbers = selectedNumbers.filter(num => drawnNumbers.includes(num));
@@ -510,7 +518,7 @@ const handleClearTable = () => {
             'Classic': ['0.00x', '0.00x', '0.00x', '1.40x', '2.25x', '4.50x', '8.00x', '17.00x', '50.00x', '80.00x', '100.0x'],
             'Low': ['0.00x', '0.00x', '1.10x', '1.20x', '1.30x', '1.80x', '3.50x', '13.00x', '50.00x', '250.0x', '1000x'],
             'Medium': ['0.00x', '0.00x', '0.00x', '1.10x', '1.30x', '1.80x', '3.50x', '13.00x', '50.00x', '250.0x', '1000x'],
-            'High': ['0.00x', '0.00x', '0.00x', '0.00x', '3.50x', '8.00x', '13.00x', '83.00x', '500.0x', '800.0x', '1000x']
+            'High': ['0.00x', '0.00x', '0.00x', '0.00x', '3.50x', '8.00x', '13.00x', '63.00x', '500.0x', '800.0x', '1000x']
         };
         
         return multipliers[riskLevel];
@@ -539,17 +547,10 @@ const handleClearTable = () => {
                 <div className="betting-panel">
                     <div className="top-controls">
                         <div className="balance-display">
-                            <span>Balance</span>
+                            <span className="balance-label">Balance</span>
                             <span className="balance-amount">${balance.toFixed(2)}</span>
                         </div>
                         <div className="control-buttons">
-                            <button 
-                                className={`sound-toggle ${isMuted ? 'muted' : ''}`}
-                                onClick={toggleMute}
-                                title={isMuted ? "Unmute sounds" : "Mute sounds"}
-                            >
-                                {isMuted ? '🔇' : '🔊'}
-                            </button>
                             <button 
                                 className={`stats-toggle ${showStats ? 'active' : ''}`}
                                 onClick={toggleStats}
@@ -557,6 +558,27 @@ const handleClearTable = () => {
                             >
                                 📊
                             </button>
+                        </div>
+                    </div>
+
+                    {/* Volume Slider */}
+                    <div className="volume-control-section">
+                        <div className="volume-label">
+                            <span>Volume</span>
+                            <span className="volume-value">{Math.round(volume * 100)}%</span>
+                        </div>
+                        <div className="volume-slider-container">
+                            <span className="volume-icon">🔈</span>
+                            <input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value={volume}
+                                onChange={handleVolumeChange}
+                                className="volume-slider"
+                            />
+                            <span className="volume-icon">🔊</span>
                         </div>
                     </div>
 
@@ -620,27 +642,23 @@ const handleClearTable = () => {
                         </div>
                     </div>
 
+                    {/* Draw Speed Slider */}
                     <div className="speed-section">
-                        <p>Draw Speed</p>
-                        <div className="speed-buttons">
-                            <button
-                                className={`speed-button ${animationSpeed === 'Fast' ? 'active' : ''}`}
-                                onClick={() => handleSpeedChange('Fast')}
-                            >
-                                Fast
-                            </button>
-                            <button
-                                className={`speed-button ${animationSpeed === 'Normal' ? 'active' : ''}`}
-                                onClick={() => handleSpeedChange('Normal')}
-                            >
-                                Normal
-                            </button>
-                            <button
-                                className={`speed-button ${animationSpeed === 'Slow' ? 'active' : ''}`}
-                                onClick={() => handleSpeedChange('Slow')}
-                            >
-                                Slow
-                            </button>
+                        <div className="speed-label">
+                            <span>Draw Speed</span>
+                            <span className="speed-value">{animationSpeed} ms</span>
+                        </div>
+                        <div className="speed-slider-container">
+                            <span className="speed-icon">🐢</span>
+                            <input
+                                type="range"
+                                min="70"
+                                max="200"
+                                value={animationSpeed}
+                                onChange={handleSpeedChange}
+                                className="speed-slider"
+                            />
+                            <span className="speed-icon">🐇</span>
                         </div>
                     </div>
 
