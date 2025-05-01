@@ -172,36 +172,36 @@ function App() {
                     setTimeout(() => {
                         setIsDrawing(false);
 
-                        // Show compact result popup
-                        showCompactResultPopup(
-                            selectedNumbers.filter(num => drawnNumbers.includes(num)),
-                            drawnNumbers
-                        );
+                        // Show result popup only if there's a win
+                        const matchedNumbers = selectedNumbers.filter(num => drawnNumbers.includes(num));
+                        const winAmount = calculateWinnings(matchedNumbers);
+                        
+                        if (winAmount > 0) {
+                            showWinResultPopup(matchedNumbers, drawnNumbers);
+                        }
                     }, 200);
                 }
-            }, 70 * (index + 1)); // 70ms delay between each number - faster
+            }, 60 * (index + 1)); // 70ms delay between each number - faster
         });
     };
 
-    // Show compact result popup
-    const showCompactResultPopup = (matchedNumbers, drawnNumbers) => {
+    // Show win result popup
+    const showWinResultPopup = (matchedNumbers, drawnNumbers) => {
         const winAmount = calculateWinnings(matchedNumbers);
 
         // Add winnings to balance
-        if (winAmount > 0) {
-            setBalance(prevBalance => {
-                return parseFloat((prevBalance + winAmount).toFixed(2));
-            });
-        }
+        setBalance(prevBalance => {
+            return parseFloat((prevBalance + winAmount).toFixed(2));
+        });
             
-        // Set result data for the compact popup
+        // Set result data for the popup
         setResultData({
             winAmount,
             matchedNumbers,
             drawnNumbers
         });
 
-        // Show compact result regardless of win or loss
+        // Show result popup
         setShowCompactResult(true);
     };
 
@@ -216,10 +216,13 @@ function App() {
             return;
         }
 
-        // Deduct bet amount from balance
-        setBalance(prevBalance => {
-            return parseFloat((prevBalance - parseFloat(betAmount)).toFixed(2));
-        });
+        // Only deduct bet amount if user has selected numbers
+        if (selectedNumbers.length > 0) {
+            // Deduct bet amount from balance
+            setBalance(prevBalance => {
+                return parseFloat((prevBalance - parseFloat(betAmount)).toFixed(2));
+            });
+        }
 
         // Generate drawn numbers
         const drawnNumbers = generateDrawNumbers();
@@ -228,7 +231,7 @@ function App() {
         handleDrawAnimation(drawnNumbers);
     };
 
-    // Close compact result
+    // Close result popup
     const handleCompactResultClose = () => {
         setShowCompactResult(false);
     };
@@ -385,58 +388,19 @@ function App() {
                 </div>
             </div>
 
-            {/* Improved Compact Result Display */}
+            {/* Simple Win Overlay - Only shows on wins */}
             {showCompactResult && (
-                <div className="compact-result">
-                    <div className="compact-result-content">
-                        <div className="result-header">
-                            {resultData.winAmount > 0 ? 'You Won!' : 'Game Result'}
-                        </div>
-                        <div className="compact-result-info">
-                            <div className="match-info">
-                                <span className="match-label">Matched</span>
-                                <span className="matched-count">{resultData.matchedNumbers.length}</span>
-                                <span className="match-label">of 10</span>
+                <div className="win-overlay">
+                    <div className="win-overlay-content">
+                        <div className="win-title">WIN!</div>
+                        <div className="win-amount">${resultData.winAmount.toFixed(2)}</div>
+                        <div className="win-details">
+                            <div className="matched-numbers">
+                                <span>{resultData.matchedNumbers.length}</span> Tiles
                             </div>
-                            
-                            {resultData.winAmount > 0 && (
-                                <div className="result-multiplier">
-                                    {getMultiplierValues()[resultData.matchedNumbers.length]}
-                                </div>
-                            )}
-                        </div>
-                        
-                        {resultData.winAmount > 0 ? (
-                            <div className="win-amount-display">
-                                <div className="win-label">WIN</div>
-                                <div className="win-value">+${resultData.winAmount.toFixed(2)}</div>
+                            <div className="win-multiplier">
+                                {getMultiplierValues()[resultData.matchedNumbers.length]}
                             </div>
-                        ) : (
-                            <div className="no-win-display">No Win</div>
-                        )}
-                        
-                        <div className="compact-result-buttons">
-                            <button
-                                className="bet-again-button"
-                                onClick={() => {
-                                    handleCompactResultClose();
-                                    setTimeout(() => {
-                                        handleBet();
-                                    }, 100);
-                                }}
-                            >
-                                Bet Again
-                            </button>
-                            <button
-                                className="close-result-button"
-                                onClick={handleCompactResultClose}
-                            >
-                                Close
-                            </button>
-                        </div>
-                        
-                        <div className="spacebar-tip">
-                            Press <kbd>Spacebar</kbd> to bet again
                         </div>
                     </div>
                 </div>
