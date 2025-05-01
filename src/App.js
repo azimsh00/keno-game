@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 
 function App() {
@@ -29,6 +29,108 @@ function App() {
     const [isDrawing, setIsDrawing] = useState(false);
     const [drawnResults, setDrawnResults] = useState([]);
     const [drawCount, setDrawCount] = useState(0);
+
+    // State for audio mute
+    const [isMuted, setIsMuted] = useState(false);
+
+    // Audio References
+    const audioRefs = useRef({
+        draw: [], // Array of Audio objects for concurrent sounds
+        match: [],
+        win: null
+    });
+
+    // Number of concurrent audio instances to create
+    const CONCURRENT_AUDIO_COUNT = 10; // For rapid draw/match sounds
+
+    // Initialize audio elements
+    useEffect(() => {
+        // Create multiple instances for draw and match sounds for concurrent playback
+        for (let i = 0; i < CONCURRENT_AUDIO_COUNT; i++) {
+            audioRefs.current.draw[i] = new Audio('/sounds/draw.mp3');
+            audioRefs.current.match[i] = new Audio('/sounds/match2.mp3');
+        }
+        
+        // Single instance for win sound (doesn't need to stack)
+        audioRefs.current.win = new Audio('/sounds/win.mp3');
+
+        // Pre-load all sounds
+        // Draw sounds
+        audioRefs.current.draw.forEach(audio => {
+            audio.load();
+            audio.volume = 0.5;
+        });
+        
+        // Match sounds
+        audioRefs.current.match.forEach(audio => {
+            audio.load();
+            audio.volume = 0.5;
+        });
+        
+        // Win sound
+        audioRefs.current.win.load();
+        audioRefs.current.win.volume = 0.5;
+
+        // Cleanup function
+        return () => {
+            // Clean up draw sounds
+            audioRefs.current.draw.forEach(audio => {
+                audio.pause();
+                audio.currentTime = 0;
+            });
+            
+            // Clean up match sounds
+            audioRefs.current.match.forEach(audio => {
+                audio.pause();
+                audio.currentTime = 0;
+            });
+            
+            // Clean up win sound
+            if (audioRefs.current.win) {
+                audioRefs.current.win.pause();
+                audioRefs.current.win.currentTime = 0;
+            }
+        };
+    }, []);
+
+    // Counter for cycling through audio arrays
+    const audioIndexRef = useRef({
+        draw: 0,
+        match: 0
+    });
+
+    // Function to play sound that supports concurrent playback
+    const playSound = (soundName) => {
+        if (isMuted) return;
+        
+        if (soundName === 'draw' || soundName === 'match') {
+            // Get next available audio instance
+            const index = audioIndexRef.current[soundName];
+            const audio = audioRefs.current[soundName][index];
+            
+            if (audio) {
+                // Play from start
+                audio.currentTime = 0;
+                audio.play().catch(error => {
+                    console.error(`Error playing ${soundName} sound:`, error);
+                });
+                
+                // Update index for next call, cycling through available instances
+                audioIndexRef.current[soundName] = (index + 1) % CONCURRENT_AUDIO_COUNT;
+            }
+        } else if (soundName === 'win' && audioRefs.current.win) {
+            // Regular play for win sound
+            audioRefs.current.win.currentTime = 0;
+            audioRefs.current.win.play().catch(error => {
+                console.error(`Error playing win sound:`, error);
+            });
+        }
+    };
+
+    // Toggle mute function
+    const toggleMute = () => {
+        setIsMuted(!isMuted);
+    };
 
     // Add event listener for spacebar to bet again
     useEffect(() => {
@@ -127,7 +229,7 @@ function App() {
         // Base multipliers by risk level and number of matches
         const multipliers = {
             'Classic': [0, 0, 0, 1.4, 2.25, 4.5, 8.0, 17.0, 50.0, 80.0, 100.0],
-            'Low': [0, 0, 0.5, 1.6, 2.0, 4.0, 7.0, 28.0, 100.0, 500.0, 1000.0],
+            'Low': [0, 0, 1.10, 1.20, 1.30, 1.80, 3.50, 13.00, 50.00, 250.0, 1000.0],
             'Medium': [0, 0, 0, 1.1, 1.3, 1.8, 3.5, 13.0, 50.0, 250.0, 1000.0],
             'High': [0, 0, 0, 0, 3.5, 8.0, 13.0, 83.0, 500.0, 800.0, 1000.0]
         };
@@ -167,6 +269,14 @@ function App() {
                 // Add to drawn results
                 setDrawnResults(prev => [...prev, number]);
 
+                // Play appropriate sound based on whether the number matches a selected number
+                if (selectedNumbers.includes(number)) {
+                    playSound('match');
+                } else {
+                    // Play draw sound for numbers that AREN'T matches
+                    playSound('draw');
+                }
+
                 // Check if this is the last number
                 if (index === drawnNumbers.length - 1) {
                     setTimeout(() => {
@@ -181,13 +291,18 @@ function App() {
                         }
                     }, 200);
                 }
-            }, 60 * (index + 1)); // 70ms delay between each number - faster
+            }, 60 * (index + 1)); // 60ms delay between each number - faster
         });
     };
 
     // Show win result popup
     const showWinResultPopup = (matchedNumbers, drawnNumbers) => {
         const winAmount = calculateWinnings(matchedNumbers);
+
+        // Play win sound if there's a win
+        if (winAmount > 0) {
+            playSound('win');
+        }
 
         // Add winnings to balance
         setBalance(prevBalance => {
@@ -240,7 +355,7 @@ function App() {
     const getMultiplierValues = () => {
         const multipliers = {
             'Classic': ['0.00x', '0.00x', '0.00x', '1.40x', '2.25x', '4.50x', '8.00x', '17.00x', '50.00x', '80.00x', '100.0x'],
-            'Low': ['0.00x', '0.00x', '0.50x', '1.60x', '2.00x', '4.00x', '7.00x', '28.00x', '100.0x', '500.0x', '1000x'],
+            'Low': ['0.00x', '0.00x', '1.10x', '1.20x', '1.30x', '1.80x', '3.50x', '13.00x', '50.00x', '250.0x', '1000x'],
             'Medium': ['0.00x', '0.00x', '0.00x', '1.10x', '1.30x', '1.80x', '3.50x', '13.00x', '50.00x', '250.0x', '1000x'],
             'High': ['0.00x', '0.00x', '0.00x', '0.00x', '3.50x', '8.00x', '13.00x', '83.00x', '500.0x', '800.0x', '1000x']
         };
@@ -252,9 +367,18 @@ function App() {
         <div className="keno-app">
             <div className="keno-container">
                 <div className="betting-panel">
-                    <div className="balance-display">
-                        <span>Balance</span>
-                        <span className="balance-amount">${balance.toFixed(2)}</span>
+                    <div className="top-controls">
+                        <div className="balance-display">
+                            <span>Balance</span>
+                            <span className="balance-amount">${balance.toFixed(2)}</span>
+                        </div>
+                        <button 
+                            className={`sound-toggle ${isMuted ? 'muted' : ''}`}
+                            onClick={toggleMute}
+                            title={isMuted ? "Unmute sounds" : "Mute sounds"}
+                        >
+                            {isMuted ? '🔇' : '🔊'}
+                        </button>
                     </div>
 
                     <div className="bet-amount-section">
@@ -390,7 +514,7 @@ function App() {
 
             {/* Simple Win Overlay - Only shows on wins */}
             {showCompactResult && (
-                <div className="win-overlay">
+                <div className="win-overlay" onClick={handleCompactResultClose}>
                     <div className="win-overlay-content">
                         <div className="win-title">WIN!</div>
                         <div className="win-amount">${resultData.winAmount.toFixed(2)}</div>
