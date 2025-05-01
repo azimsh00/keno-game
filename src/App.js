@@ -291,7 +291,7 @@ function App() {
                         }
                     }, 200);
                 }
-            }, 60 * (index + 1)); // 60ms delay between each number - faster
+            }, 130 * (index + 1)); // 60ms delay between each number - faster
         });
     };
 
