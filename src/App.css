@@ -1,0 +1,587 @@
+/* Import JetBrains Mono font */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+/* General App Styling */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'JetBrains Mono', monospace;
+    background-color: #121212;
+    color: #ffffff;
+}
+
+.keno-app {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+}
+
+.keno-container {
+    display: flex;
+    max-width: 1200px;
+    width: 100%;
+    background-color: #1c1c1c;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+}
+
+/* Betting Panel */
+.betting-panel {
+    width: 300px;
+    padding: 24px;
+    background-color: #181818;
+    border-right: 1px solid #2a2a2a;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Balance Display */
+.balance-display {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background-color: #212121;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.balance-amount {
+    font-weight: 700;
+    color: #4ADE80;
+    font-size: 18px;
+}
+
+/* Bet Mode Toggle */
+.bet-mode-toggle {
+    display: flex;
+    background-color: #252525;
+    border-radius: 8px;
+    overflow: hidden;
+    padding: 2px;
+}
+
+.mode-button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    background: none;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+}
+
+.mode-button.active {
+    background-color: #0f99ff;
+    box-shadow: 0 2px 8px rgba(15, 153, 255, 0.4);
+}
+
+/* Bet Amount Section */
+.bet-amount-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.bet-amount-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    color: #a0a0a0;
+}
+
+.info-icon {
+    color: #a0a0a0;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.amount-display {
+    color: #ffffff;
+    font-weight: 500;
+}
+
+.bet-amount-input {
+    display: flex;
+    gap: 8px;
+}
+
+.crypto-input {
+    width: 60%;
+    display: flex;
+    align-items: center;
+    background-color: #252525;
+    border-radius: 8px;
+    padding: 0 12px;
+    border: 1px solid #333;
+    transition: border-color 0.2s;
+}
+
+.crypto-input:focus-within {
+    border-color: #0f99ff;
+}
+
+.crypto-icon {
+    color: #0f99ff;
+    font-size: 18px;
+    margin-right: 8px;
+    font-weight: bold;
+}
+
+.crypto-input input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #ffffff;
+    padding: 12px 0;
+    font-size: 15px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.crypto-input input:focus {
+    outline: none;
+}
+
+.half-button,
+.double-button {
+    padding: 0 12px;
+    background-color: #252525;
+    border: none;
+    color: #ffffff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: 1px solid #333;
+    width: 40px;
+    flex-shrink: 0;
+}
+
+.half-button:hover,
+.double-button:hover {
+    background-color: #303030;
+    border-color: #0f99ff;
+}
+
+/* Risk Section */
+.risk-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.risk-section p {
+    margin: 0;
+    color: #a0a0a0;
+    font-size: 14px;
+}
+
+.risk-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.risk-button {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.risk-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(100%);
+    transition: transform 0.2s;
+}
+
+.risk-button:hover::before {
+    transform: translateY(0);
+}
+
+.risk-button.classic {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.risk-button.low {
+    background-color: #10b981;
+    color: white;
+}
+
+.risk-button.medium {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.risk-button.high {
+    background-color: #ef4444;
+    color: white;
+}
+
+.risk-button.active {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+/* Selection Info */
+.selection-info {
+    text-align: center;
+    color: #a0a0a0;
+    font-size: 14px;
+    padding: 8px;
+    background-color: #212121;
+    border-radius: 8px;
+}
+
+/* Table Action Buttons */
+.table-action-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.auto-pick-button,
+.clear-table-button {
+    flex: 1;
+    padding: 14px;
+    background-color: #252525;
+    border: none;
+    color: #ffffff;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    border: 1px solid #333;
+}
+
+.auto-pick-button:hover,
+.clear-table-button:hover {
+    background-color: #303030;
+    border-color: #0f99ff;
+    transform: translateY(-2px);
+}
+
+/* Bet Button */
+.bet-button {
+    padding: 16px;
+    background-color: #0f99ff;
+    border: none;
+    color: #ffffff;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(15, 153, 255, 0.3);
+}
+
+.bet-button:hover {
+    background-color: #2ba8ff;
+    box-shadow: 0 6px 16px rgba(15, 153, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+/* Keno Board */
+.keno-board {
+    flex: 1;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    background-color: #1a1a1a;
+}
+
+/* Numbers Grid */
+.numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.number-button {
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #252525;
+    border: none;
+    color: #ffffff;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.number-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* User selected numbers - blue background */
+.number-button.selected {
+    background-color: #0f99ff;
+    box-shadow: 0 0 12px rgba(15, 153, 255, 0.5);
+}
+
+/* Numbers that have been drawn - darker background */
+.number-button.drawn-result {
+    background-color: #121212;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8);
+    color: #777;
+}
+
+/* Matched numbers (user selected + drawn) - keep green for correct picks */
+.number-button.matched {
+    background-color: #10b981;
+    color: white;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.7);
+}
+
+/* Drawing Count */
+.drawing-info {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #252525;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.drawing-count {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.dot {
+    width: 12px;
+    height: 12px;
+    background-color: #10b981;
+    border-radius: 50%;
+}
+
+.drawn-count {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    background-color: #202020;
+    padding: 5px 10px;
+    border-radius: 4px;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    font-size: 14px;
+}
+
+.drawn-count .dot {
+    width: 12px;
+    height: 12px;
+    background-color: #10b981;
+    border-radius: 50%;
+}
+
+/* Multipliers Section */
+.multipliers-section {
+    margin-top: auto;
+}
+
+.multiplier-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.multiplier-row {
+    display: flex;
+    gap: 8px;
+}
+
+.multiplier-cell {
+    flex: 1;
+    padding: 12px 6px;
+    background-color: #252525;
+    text-align: center;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.multiplier-cell.green {
+    color: #10b981;
+    background-color: rgba(16, 185, 129, 0.1);
+}
+
+.green-dot {
+    margin-left: 4px;
+    color: #10b981;
+}
+
+/* Compact Result Popup - Fixed Position */
+.compact-result {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(5px);
+    width: 280px;
+    border-radius: 12px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    overflow: hidden;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.compact-result-content {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.compact-result-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.matched-count {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.result-multiplier {
+    font-size: 18px;
+    font-weight: 700;
+    color: #10b981;
+    padding: 5px 10px;
+    background-color: rgba(16, 185, 129, 0.1);
+    border-radius: 6px;
+}
+
+.win-amount-display {
+    font-size: 28px;
+    font-weight: 700;
+    color: #10b981;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+}
+
+.no-win-display {
+    font-size: 20px;
+    font-weight: 700;
+    color: #ef4444;
+    text-align: center;
+}
+
+.compact-result-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.bet-again-button,
+.close-result-button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+}
+
+.bet-again-button {
+    background-color: #0f99ff;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(15, 153, 255, 0.3);
+}
+
+.bet-again-button:hover {
+    background-color: #2ba8ff;
+    box-shadow: 0 6px 16px rgba(15, 153, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+.close-result-button {
+    background-color: #333;
+    color: #ffffff;
+}
+
+.close-result-button:hover {
+    background-color: #444;
+    transform: translateY(-2px);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .keno-container {
+        flex-direction: column;
+    }
+
+    .betting-panel {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #2a2a2a;
+    }
+
+    .compact-result {
+        width: 90%;
+        max-width: 280px;
+    }
+}
+
+/* Disabled Button Styles */
+button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
