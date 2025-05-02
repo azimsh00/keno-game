@@ -845,3 +845,55 @@ body {
     width: 100%;
     height: 100%;
 }
+
+/* Rakeback Display Section */
+.rakeback-display {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    background-color: #212121;
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.rakeback-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.rakeback-label {
+    font-size: 14px;
+    color: #a0a0a0;
+    margin-bottom: 2px;
+}
+
+.rakeback-amount {
+    font-weight: 600;
+    color: #fcd34d;
+    font-size: 16px;
+}
+
+.claim-rakeback-button {
+    background-color: #fcd34d;
+    color: #121212;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.claim-rakeback-button:hover {
+    background-color: #fde68a;
+    transform: translateY(-2px);
+}
+
+.claim-rakeback-button:disabled {
+    background-color: #4a4a4a;
+    color: #777;
+    cursor: not-allowed;
+    transform: none;
+}

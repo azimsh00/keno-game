@@ -44,6 +44,9 @@ function App() {
     // Reference for mini chart canvas
     const miniChartRef = useRef(null);
 
+    // State for rakeback feature
+    const [rakebackBalance, setRakebackBalance] = useState(0);
+
     // Audio References
     const audioRefs = useRef({
         draw: [], // Array of Audio objects for concurrent sounds
@@ -62,16 +65,16 @@ function App() {
             match: [],
             win: null
         };
-        
+
         // Create multiple instances for draw and match sounds for concurrent playback
         for (let i = 0; i < CONCURRENT_AUDIO_COUNT; i++) {
             audioRefs.current.draw[i] = new Audio('/sounds/draw.mp3');
             audioRefsCopy.draw[i] = audioRefs.current.draw[i];
-            
+
             audioRefs.current.match[i] = new Audio('/sounds/match2.mp3');
             audioRefsCopy.match[i] = audioRefs.current.match[i];
         }
-        
+
         // Single instance for win sound (doesn't need to stack)
         audioRefs.current.win = new Audio('/sounds/win.mp3');
         audioRefsCopy.win = audioRefs.current.win;
@@ -82,13 +85,13 @@ function App() {
             audio.load();
             audio.volume = volume;
         });
-        
+
         // Match sounds
         audioRefs.current.match.forEach(audio => {
             audio.load();
             audio.volume = volume;
         });
-        
+
         // Win sound
         audioRefs.current.win.load();
         audioRefs.current.win.volume = volume;
@@ -100,13 +103,13 @@ function App() {
                 audio.pause();
                 audio.currentTime = 0;
             });
-            
+
             // Clean up match sounds
             audioRefsCopy.match.forEach(audio => {
                 audio.pause();
                 audio.currentTime = 0;
             });
-            
+
             // Clean up win sound
             if (audioRefsCopy.win) {
                 audioRefsCopy.win.pause();
@@ -121,12 +124,12 @@ function App() {
         audioRefs.current.draw.forEach(audio => {
             audio.volume = volume;
         });
-        
+
         // Update match sounds volume
         audioRefs.current.match.forEach(audio => {
             audio.volume = volume;
         });
-        
+
         // Update win sound volume
         if (audioRefs.current.win) {
             audioRefs.current.win.volume = volume;
@@ -136,29 +139,29 @@ function App() {
     // Draw mini chart when pnlData changes
     useEffect(() => {
         if (!miniChartRef.current || pnlData.length <= 1 || !showStats) return;
-        
+
         const canvas = miniChartRef.current;
         const ctx = canvas.getContext('2d');
         const dpr = window.devicePixelRatio || 1;
-        
+
         // Set canvas dimensions
         const rect = canvas.getBoundingClientRect();
         canvas.width = rect.width * dpr;
         canvas.height = rect.height * dpr;
         ctx.scale(dpr, dpr);
-        
+
         // Clear canvas
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
+
         // Find min and max values
         let maxBalance = Math.max(...pnlData.map(item => item.balance));
         let minBalance = Math.min(...pnlData.map(item => item.balance));
-        
+
         // Add padding to values
         const padding = (maxBalance - minBalance) * 0.1;
         maxBalance += padding;
         minBalance = Math.max(0, minBalance - padding);
-        
+
         // Draw baseline
         const baselineY = rect.height - ((pnlData[0].balance - minBalance) / (maxBalance - minBalance)) * rect.height;
         ctx.beginPath();
@@ -167,18 +170,18 @@ function App() {
         ctx.moveTo(0, baselineY);
         ctx.lineTo(rect.width, baselineY);
         ctx.stroke();
-        
+
         // Draw chart line
         ctx.beginPath();
         ctx.strokeStyle = '#0f99ff';
         ctx.lineWidth = 2;
         ctx.lineJoin = 'round';
-        
+
         // Draw points
         for (let i = 0; i < pnlData.length; i++) {
             const x = (i / (pnlData.length - 1)) * rect.width;
             const y = rect.height - ((pnlData[i].balance - minBalance) / (maxBalance - minBalance)) * rect.height;
-            
+
             if (i === 0) {
                 ctx.moveTo(x, y);
             } else {
@@ -186,12 +189,12 @@ function App() {
             }
         }
         ctx.stroke();
-        
+
         // Draw points
         for (let i = 0; i < pnlData.length; i++) {
             const x = (i / (pnlData.length - 1)) * rect.width;
             const y = rect.height - ((pnlData[i].balance - minBalance) / (maxBalance - minBalance)) * rect.height;
-            
+
             ctx.beginPath();
             ctx.fillStyle = pnlData[i].change >= 0 ? '#10b981' : '#ef4444';
             ctx.arc(x, y, 2, 0, Math.PI * 2);
@@ -208,19 +211,19 @@ function App() {
     // Function to play sound that supports concurrent playback
     const playSound = (soundName) => {
         if (volume <= 0.02) return; // Consider muted if volume is very low
-        
+
         if (soundName === 'draw' || soundName === 'match') {
             // Get next available audio instance
             const index = audioIndexRef.current[soundName];
             const audio = audioRefs.current[soundName][index];
-            
+
             if (audio) {
                 // Play from start
                 audio.currentTime = 0;
                 audio.play().catch(error => {
                     console.error(`Error playing ${soundName} sound:`, error);
                 });
-                
+
                 // Update index for next call, cycling through available instances
                 audioIndexRef.current[soundName] = (index + 1) % CONCURRENT_AUDIO_COUNT;
             }
@@ -238,6 +241,20 @@ function App() {
         setShowStats(!showStats);
     };
 
+    // Handle claiming rakeback
+    const handleClaimRakeback = () => {
+        if (rakebackBalance > 0) {
+            // Add rakeback to main balance
+            setBalance(prevBalance => parseFloat((prevBalance + rakebackBalance).toFixed(2)));
+
+            // Reset rakeback balance
+            setRakebackBalance(0);
+
+            // Show a small notification (could be enhanced)
+            alert(`Rakeback of $${rakebackBalance.toFixed(2)} has been added to your balance!`);
+        }
+    };
+
     // Handle bet button click - defined early to use in useEffect
     const handleBet = React.useCallback(() => {
         // Hide previous result popup if visible
@@ -249,9 +266,6 @@ function App() {
             return;
         }
 
-        // Play draw sound when bet begins
-        playSound('draw');
-
         // Track game number
         const newGameCount = gameCount + 1;
         setGameCount(newGameCount);
@@ -261,6 +275,12 @@ function App() {
             // Deduct bet amount from balance
             setBalance(prevBalance => {
                 return parseFloat((prevBalance - parseFloat(betAmount)).toFixed(2));
+            });
+
+            // Add to rakeback balance (0.02% of bet amount)
+            const rakeAmount = parseFloat(betAmount) * 0.0002;
+            setRakebackBalance(prevRakeback => {
+                return parseFloat((prevRakeback + rakeAmount).toFixed(2));
             });
         }
 
@@ -315,13 +335,13 @@ function App() {
     const handleAutoPick = () => {
         // Clear current selections
         setSelectedNumbers([]);
-        
+
         // Clear previously drawn numbers
         setDrawnResults([]);
-        
+
         // Reset draw count
         setDrawCount(0);
-    
+
         // Generate 10 random unique numbers between 1-40
         const randomNumbers = [];
         while (randomNumbers.length < 10) {
@@ -340,10 +360,10 @@ function App() {
     const handleClearTable = () => {
         // Clear selected numbers
         setSelectedNumbers([]);
-        
+
         // Clear previously drawn numbers
         setDrawnResults([]);
-        
+
         // Reset draw count
         setDrawCount(0);
     };
@@ -387,7 +407,7 @@ function App() {
         const multipliers = {
             'Classic': [0, 0, 0, 1.4, 2.25, 4.5, 8.0, 17.0, 50.0, 80.0, 100.0],
             'Low': [0, 0, 1.10, 1.20, 1.30, 1.80, 3.50, 13.00, 50.00, 250.0, 1000.0],
-            'Medium': [0, 0, 0, 1.1, 1.3, 1.8, 3.5, 13.0, 50.0, 250.0, 1000.0],
+            'Medium': [0, 0, 0, 1.6, 2.0, 4.0, 7.0, 26.0, 100.0, 500.0, 1000.0],
             'High': [0, 0, 0, 0, 3.5, 8.0, 13.0, 63.0, 500.0, 800.0, 1000.0]
         };
 
@@ -423,7 +443,7 @@ function App() {
         // Update PnL data with bet deduction if no win occurs
         const matchedNumbers = selectedNumbers.filter(num => drawnNumbers.includes(num));
         const winAmount = calculateWinnings(matchedNumbers);
-        
+
         // If this will be a loss (no win popup will be shown), update PnL data
         if (winAmount === 0 && selectedNumbers.length > 0) {
             setPnlData(prevData => [
@@ -445,11 +465,12 @@ function App() {
                 // Add to drawn results
                 setDrawnResults(prev => [...prev, number]);
 
-                // Play appropriate sound based on whether the number matches a selected number
+                // CHANGED SOUND MECHANIC: Always play draw sound
+                playSound('draw');
+
+                // If the drawn number matches a selected number, also play match sound
                 if (selectedNumbers.includes(number)) {
                     playSound('match');
-                } else {
-                    playSound('draw');
                 }
 
                 // Check if this is the last number
@@ -460,7 +481,7 @@ function App() {
                         // Show result popup only if there's a win
                         const matchedNumbers = selectedNumbers.filter(num => drawnNumbers.includes(num));
                         const winAmount = calculateWinnings(matchedNumbers);
-                        
+
                         if (winAmount > 0) {
                             showWinResultPopup(matchedNumbers, drawnNumbers);
                         }
@@ -482,7 +503,7 @@ function App() {
         // Add winnings to balance
         setBalance(prevBalance => {
             const newBalance = parseFloat((prevBalance + winAmount).toFixed(2));
-            
+
             // Update PnL data with the new game result
             setPnlData(prevData => [
                 ...prevData,
@@ -492,10 +513,10 @@ function App() {
                     change: winAmount - parseFloat(betAmount)
                 }
             ]);
-            
+
             return newBalance;
         });
-            
+
         // Set result data for the popup
         setResultData({
             winAmount,
@@ -516,11 +537,11 @@ function App() {
     const getMultiplierValues = () => {
         const multipliers = {
             'Classic': ['0.00x', '0.00x', '0.00x', '1.40x', '2.25x', '4.50x', '8.00x', '17.00x', '50.00x', '80.00x', '100.0x'],
-            'Low': ['0.00x', '0.00x', '1.10x', '1.20x', '1.30x', '1.80x', '3.50x', '13.00x', '50.00x', '250.0x', '1000x'],
+            'Low': ['0.00x', '0.00x', '0.00x', '1.60x', '2.00x', '4.00x', '7.00x', '26.00x', '100.00x', '500.0x', '1000x'],
             'Medium': ['0.00x', '0.00x', '0.00x', '1.10x', '1.30x', '1.80x', '3.50x', '13.00x', '50.00x', '250.0x', '1000x'],
             'High': ['0.00x', '0.00x', '0.00x', '0.00x', '3.50x', '8.00x', '13.00x', '63.00x', '500.0x', '800.0x', '1000x']
         };
-        
+
         return multipliers[riskLevel];
     };
 
@@ -529,7 +550,7 @@ function App() {
         const startingBalance = pnlData[0].balance;
         const netPnl = balance - startingBalance;
         const isPositive = netPnl >= 0;
-        
+
         return {
             gamesPlayed: gameCount,
             startingBalance: startingBalance,
@@ -551,7 +572,7 @@ function App() {
                             <span className="balance-amount">${balance.toFixed(2)}</span>
                         </div>
                         <div className="control-buttons">
-                            <button 
+                            <button
                                 className={`stats-toggle ${showStats ? 'active' : ''}`}
                                 onClick={toggleStats}
                                 title="Show/Hide PnL Stats"
@@ -559,6 +580,21 @@ function App() {
                                 📊
                             </button>
                         </div>
+                    </div>
+
+                    {/* Rakeback Display */}
+                    <div className="rakeback-display">
+                        <div className="rakeback-info">
+                            <span className="rakeback-label">Rakeback</span>
+                            <span className="rakeback-amount">${rakebackBalance.toFixed(2)}</span>
+                        </div>
+                        <button
+                            className="claim-rakeback-button"
+                            onClick={handleClaimRakeback}
+                            disabled={rakebackBalance <= 0}
+                        >
+                            Claim
+                        </button>
                     </div>
 
                     {/* Volume Slider */}
